@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lightship Pricing – Config Admin</title>
+  <style>
+    :root{--navy:#0d2540;--blue:#2d6cdf;--sky:#eef5ff;--slate:#5f6b7a;--radius:16px}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0f172a;margin:0;background:#fff}
+    header{background:linear-gradient(90deg,var(--navy),#12325f);color:#fff;padding:22px}
+    header h1{margin:0;font-size:20px}
+    header p{margin:6px 0 0;opacity:.9;font-size:13px}
+    .wrap{max-width:1000px;margin:24px auto;padding:0 16px 48px}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px}
+    @media(min-width:980px){.grid{grid-template-columns:1fr 1fr}}
+    .card{border:1px solid #e5e7eb;border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.04);overflow:hidden}
+    .card h2{margin:0;font-size:16px;color:var(--navy)}
+    .card header{background:#f8fafc;color:var(--navy);padding:14px 16px;border-bottom:1px solid #eef0f3}
+    .card .body{padding:14px 16px}
+    label{font-size:13px;color:#0f172a}
+    input[type="text"], input[type="number"], input[type="url"], input[type="color"], textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;font-size:14px}
+    .row{display:grid;grid-template-columns:1.6fr .7fr .7fr auto;gap:8px;align-items:center;margin:8px 0}
+    .row .muted{font-size:12px;color:#64748b}
+    .row .chk{display:flex;gap:8px;align-items:center}
+    .btn{background:var(--blue);color:#fff;border:none;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer}
+    .btn.ghost{background:#102642;color:#cbd5e1;border:1px solid #203a63}
+    .btn.link{background:transparent;color:var(--blue);border:none}
+    .stack{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .hr{height:1px;background:#e5e7eb;margin:14px 0}
+    .note{font-size:12px;color:#64748b}
+    .k{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;background:#0b1220;color:#d1e0ff;border-radius:10px;padding:12px;overflow:auto}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--sky);color:var(--navy);font-size:12px;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px dashed #eef0f3;font-size:13px}
+    th{text-align:left;color:#334155}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Lightship Pricing – Config Admin</h1>
+    <p>Set pricing inputs for the interactive picker. Save to localStorage, copy JSON, or generate a share URL.</p>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <!-- One-time items -->
+      <div class="card">
+        <header><h2>One‑Time Items</h2></header>
+        <div class="body">
+          <div class="row" style="grid-template-columns:1fr .5fr .5fr auto">
+            <div class="muted">Label</div>
+            <div class="muted">Price (USD)</div>
+            <div class="muted">Checked</div>
+            <div></div>
+          </div>
+          <div id="oneTimeList"></div>
+          <div class="stack"><button class="btn" id="addOne">+ Add Item</button></div>
+        </div>
+      </div>
+
+      <!-- Monthly plans -->
+      <div class="card">
+        <header><h2>Monthly Plans</h2></header>
+        <div class="body">
+          <div class="row" style="grid-template-columns:1fr .6fr .6fr auto">
+            <div class="muted">Plan Label</div>
+            <div class="muted">$/mo</div>
+            <div class="muted">Default</div>
+            <div></div>
+          </div>
+          <div id="planList"></div>
+          <div class="stack"><button class="btn" id="addPlan">+ Add Plan</button></div>
+          <div class="hr"></div>
+          <label class="note"><input type="checkbox" id="annualPrepay"> Enable annual pre‑pay discount (%)</label>
+          <input type="number" id="prepayPct" value="10" min="0" max="50" />
+        </div>
+      </div>
+
+      <!-- Adjustments & Branding -->
+      <div class="card">
+        <header><h2>Adjustments & Branding</h2></header>
+        <div class="body">
+          <label>Nonprofit/community discount (%)</label>
+          <input type="number" id="nonprofitPct" value="10" min="0" max="50"/>
+          <div class="hr"></div>
+          <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label>Brand Navy</label>
+              <input type="color" id="brandNavy" value="#0d2540" />
+            </div>
+            <div>
+              <label>Accent Blue</label>
+              <input type="color" id="brandBlue" value="#2d6cdf" />
+            </div>
+            <div>
+              <label>Sky</label>
+              <input type="color" id="brandSky" value="#eaf2ff" />
+            </div>
+            <div>
+              <label>Logo URL (optional)</label>
+              <input type="url" id="logoUrl" placeholder="https://.../logo.png" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export / Import -->
+      <div class="card">
+        <header><h2>Save, Export & Share</h2></header>
+        <div class="body">
+          <div class="stack">
+            <button class="btn" id="saveLocal">Save to Browser</button>
+            <button class="btn ghost" id="loadLocal">Load from Browser</button>
+            <button class="btn" id="copyJson">Copy JSON</button>
+            <button class="btn ghost" id="downloadJson">Download JSON</button>
+          </div>
+          <div class="hr"></div>
+          <div class="stack">
+            <button class="btn" id="shareUrl">Generate Share URL</button>
+            <input type="text" id="shareOut" placeholder="Shareable URL will appear here" readonly />
+          </div>
+          <p class="note">Share URL encodes the config in the hash (after <code>#</code>) so it’s not stored on a server.</p>
+          <div class="hr"></div>
+          <h3 class="pill">How to hook this to your existing picker</h3>
+          <p class="note">Add the following snippet to your pricing picker HTML (right before its closing <code>&lt;/body&gt;</code>): it reads config from the URL hash or from <code>localStorage</code> (<code>ltpPricingConfig</code>) and updates labels/prices.</p>
+          <pre class="k"><code>&lt;script&gt;
+(function(){
+  function b64d(s){try{return JSON.parse(decodeURIComponent(atob(s)))}catch(e){return null}}
+  const hash=location.hash.slice(1); let cfg = hash? b64d(hash): null;
+  if(!cfg){ const raw = localStorage.getItem('ltpPricingConfig'); if(raw){ try{cfg=JSON.parse(raw)}catch(e){} }}
+  if(!cfg) return;
+  // apply brand colors
+  const root=document.documentElement; if(cfg.brand){
+    if(cfg.brand.navy) root.style.setProperty('--navy', cfg.brand.navy);
+    if(cfg.brand.blue) root.style.setProperty('--blue', cfg.brand.blue);
+    if(cfg.brand.sky)  root.style.setProperty('--sky',  cfg.brand.sky);
+  }
+  // map one-time items to known IDs when present
+  const idMap={base:'baseProject',acc:'accAudit',trans:'translation',logo:'logoPack',launch:'launchSupport'};
+  (cfg.oneTime||[]).forEach(it=>{
+    const cb=document.getElementById(idMap[it.id]||''); if(cb){ cb.checked=!!it.checked; }
+    const priceEl= document.querySelector(`[data-price][id$="Price"]`);
+    const specific = document.getElementById(it.id+"Price"); // optional custom id
+  });
+  // update prices & labels by label text fallback
+  function setRow(id,label,price){
+    const row = document.getElementById(id);
+    const priceEl = document.querySelector(`#${id} + .price,[data-for="${id}"]`);
+    if(row && row.nextElementSibling && row.nextElementSibling.classList.contains('price')){
+      if(label){ row.parentElement.querySelector('label').childNodes[1].nodeValue = ' '+label; }
+      if(priceEl){ priceEl.dataset.price = price; priceEl.textContent = '$'+Number(price).toLocaleString(); }
+    }
+  }
+  (cfg.oneTime||[]).forEach(it=>setRow(idMap[it.id]||it.id, it.label, it.price));
+  // plans
+  const radios = Array.from(document.querySelectorAll('input[name="plan"]'));
+  if(cfg.plans){
+    // if counts match, map in order
+    if(radios.length===cfg.plans.length){
+      cfg.plans.forEach((p,i)=>{
+        const r=radios[i]; const label=r.closest('label');
+        if(label){ label.childNodes[1].nodeValue = ' '+p.label+' '; }
+        const pe = r.closest('.row').querySelector('.price');
+        if(pe){ pe.textContent = p.price? ('$'+Number(p.price).toLocaleString()+'/mo') : '$0/mo'; r.value = String(p.price||0); }
+        r.checked = !!p.default;
+      });
+    }
+  }
+  // nonprofit & prepay
+  const np = document.getElementById('nonprofit'); if(np && cfg.adjust && cfg.adjust.nonprofitPct!=null){ np.dataset.discount = cfg.adjust.nonprofitPct }
+  const ap = document.getElementById('annualPrepay'); if(ap && cfg.adjust && cfg.adjust.prepayPct!=null){ ap.dataset.discount = cfg.adjust.prepayPct }
+  // trigger picker recalc if available
+  if(window.update) try{window.update()}catch(e){}
+})();
+&lt;/script&gt;</code></pre>
+          <p class="note">For a fully dynamic picker (auto-build rows from config), I can provide a drop‑in HTML in a follow‑up.</p>
+        </div>
+      </div>
+
+      <!-- JSON preview -->
+      <div class="card" style="grid-column:1/-1">
+        <header><h2>Current Config JSON</h2></header>
+        <div class="body">
+          <pre class="k" id="jsonOut">{}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Default model seeded to your existing picker IDs
+    const model = {
+      oneTime:[
+        {id:'base',   label:'Website Design & Build', price:10500, checked:true},
+        {id:'acc',    label:'Accessibility Audit (WCAG 2.1 AA report)', price:1000, checked:false},
+        {id:'trans',  label:'Spanish/Portuguese Translation Setup', price:800, checked:false},
+        {id:'logo',   label:'Center Logo & Brand Starter (optional)', price:1800, checked:false},
+        {id:'launch', label:'Extended Launch Support (additional 30 days)', price:600, checked:false}
+      ],
+      plans:[
+        {label:'No Monthly Plan', price:0, default:true},
+        {label:'Core Support (10 hrs/mo)', price:1200, default:false},
+        {label:'Growth Partnership (25 hrs/mo, CTO oversight)', price:3000, default:false},
+        {label:'Enterprise Lightship (50+ hrs/mo)', price:5000, default:false}
+      ],
+      adjust:{ nonprofitPct:10, prepayPct:10 },
+      brand:{ navy:'#0d2540', blue:'#2d6cdf', sky:'#eaf2ff' },
+      logo:''
+    };
+
+    const elOne = document.getElementById('oneTimeList');
+    const elPlan = document.getElementById('planList');
+    const out = document.getElementById('jsonOut');
+
+    const nonprofitPct = document.getElementById('nonprofitPct');
+    const prepayChk = document.getElementById('annualPrepay');
+    const prepayPct = document.getElementById('prepayPct');
+    const brandNavy = document.getElementById('brandNavy');
+    const brandBlue = document.getElementById('brandBlue');
+    const brandSky  = document.getElementById('brandSky');
+    const logoUrl   = document.getElementById('logoUrl');
+
+    function render(){
+      // render one-time
+      elOne.innerHTML='';
+      model.oneTime.forEach((it,idx)=>{
+        const row=document.createElement('div'); row.className='row';
+        row.innerHTML = `
+          <input type="text" value="${it.label}" data-k="label">
+          <input type="number" min="0" value="${it.price}" data-k="price">
+          <label class="chk"><input type="checkbox" ${it.checked?'checked':''} data-k="checked"> <span>Default</span></label>
+          <div class="stack"><button class="btn link" data-act="up">▲</button><button class="btn link" data-act="down">▼</button><button class="btn link" data-act="del">Remove</button></div>`;
+        row.querySelectorAll('[data-k]').forEach(inp=>{
+          inp.addEventListener('input',()=>{it[inp.dataset.k] = inp.type==='checkbox'? inp.checked : (inp.type==='number'? Number(inp.value): inp.value); sync();});
+          inp.addEventListener('change',()=>{it[inp.dataset.k] = inp.type==='checkbox'? inp.checked : (inp.type==='number'? Number(inp.value): inp.value); sync();});
+        });
+        row.querySelectorAll('[data-act]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(btn.dataset.act==='del'){ model.oneTime.splice(idx,1); render(); return }
+            if(btn.dataset.act==='up' && idx>0){ const t=model.oneTime[idx-1]; model.oneTime[idx-1]=it; model.oneTime[idx]=t; render(); return }
+            if(btn.dataset.act==='down' && idx<model.oneTime.length-1){ const t=model.oneTime[idx+1]; model.oneTime[idx+1]=it; model.oneTime[idx]=t; render(); return }
+          });
+        })
+        elOne.appendChild(row);
+      });
+      // render plans
+      elPlan.innerHTML='';
+      model.plans.forEach((p,idx)=>{
+        const row=document.createElement('div'); row.className='row';
+        row.innerHTML = `
+          <input type="text" value="${p.label}" data-k="label">
+          <input type="number" min="0" value="${p.price}" data-k="price">
+          <label class="chk"><input type="radio" name="defaultPlan" ${p.default?'checked':''} data-k="default"> <span>Default</span></label>
+          <div class="stack"><button class="btn link" data-act="up">▲</button><button class="btn link" data-act="down">▼</button><button class="btn link" data-act="del">Remove</button></div>`;
+        row.querySelectorAll('[data-k]').forEach(inp=>{
+          if(inp.type==='radio'){
+            inp.addEventListener('change',()=>{ model.plans.forEach(x=>x.default=false); p.default=true; sync(); });
+          } else {
+            inp.addEventListener('input',()=>{ p[inp.dataset.k] = inp.type==='number'? Number(inp.value): inp.value; sync(); });
+            inp.addEventListener('change',()=>{ p[inp.dataset.k] = inp.type==='number'? Number(inp.value): inp.value; sync(); });
+          }
+        });
+        row.querySelectorAll('[data-act]').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            if(btn.dataset.act==='del'){ model.plans.splice(idx,1); render(); return }
+            if(btn.dataset.act==='up' && idx>0){ const t=model.plans[idx-1]; model.plans[idx-1]=p; model.plans[idx]=t; render(); return }
+            if(btn.dataset.act==='down' && idx<model.plans.length-1){ const t=model.plans[idx+1]; model.plans[idx+1]=p; model.plans[idx]=t; render(); return }
+          });
+        })
+        elPlan.appendChild(row);
+      });
+
+      nonprofitPct.value = model.adjust.nonprofitPct;
+      prepayChk.checked = model.adjust.prepayPct>0;
+      prepayPct.value = model.adjust.prepayPct;
+      brandNavy.value = model.brand.navy;
+      brandBlue.value = model.brand.blue;
+      brandSky.value  = model.brand.sky;
+      logoUrl.value   = model.logo||'';
+
+      out.textContent = JSON.stringify({
+        oneTime:model.oneTime, plans:model.plans,
+        adjust:{ nonprofitPct:Number(nonprofitPct.value||0), prepayPct: prepayChk.checked? Number(prepayPct.value||0): 0 },
+        brand:{ navy:brandNavy.value, blue:brandBlue.value, sky:brandSky.value },
+        logo: logoUrl.value||''
+      },null,2);
+    }
+
+    function sync(){ render(); }
+
+    document.getElementById('addOne').addEventListener('click',()=>{ model.oneTime.push({id:'custom'+(Math.random()*1e6|0), label:'New Item', price:0, checked:false}); render(); });
+    document.getElementById('addPlan').addEventListener('click',()=>{ model.plans.push({label:'New Plan', price:0, default:false}); render(); });
+
+    nonprofitPct.addEventListener('input',()=>{ model.adjust.nonprofitPct = Number(nonprofitPct.value||0); sync(); });
+    prepayChk.addEventListener('change',()=>{ model.adjust.prepayPct = prepayChk.checked? Number(prepayPct.value||0): 0; sync(); });
+    prepayPct.addEventListener('input',()=>{ model.adjust.prepayPct = Number(prepayPct.value||0); sync(); });
+    brandNavy.addEventListener('input',()=>{ model.brand.navy = brandNavy.value; sync(); });
+    brandBlue.addEventListener('input',()=>{ model.brand.blue = brandBlue.value; sync(); });
+    brandSky.addEventListener('input',()=>{ model.brand.sky = brandSky.value; sync(); });
+    logoUrl.addEventListener('input',()=>{ model.logo = logoUrl.value; sync(); });
+
+    // Save/Load/Copy/Download/Share
+    document.getElementById('saveLocal').addEventListener('click',()=>{
+      localStorage.setItem('ltpPricingConfig', out.textContent);
+      alert('Saved to this browser as ltpPricingConfig');
+    });
+    document.getElementById('loadLocal').addEventListener('click',()=>{
+      const raw=localStorage.getItem('ltpPricingConfig');
+      if(!raw){ alert('No config found in this browser'); return }
+      try{ const cfg=JSON.parse(raw); Object.assign(model,{oneTime:cfg.oneTime||[], plans:cfg.plans||[], adjust:cfg.adjust||{nonprofitPct:10,prepayPct:10}, brand:cfg.brand||model.brand, logo:cfg.logo||''}); render(); }
+      catch(e){ alert('Invalid JSON in localStorage'); }
+    });
+    document.getElementById('copyJson').addEventListener('click',async()=>{
+      await navigator.clipboard.writeText(out.textContent); alert('Copied JSON to clipboard');
+    });
+    document.getElementById('downloadJson').addEventListener('click',()=>{
+      const blob=new Blob([out.textContent],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ltp_pricing_config.json'; a.click(); URL.revokeObjectURL(a.href);
+    });
+    document.getElementById('shareUrl').addEventListener('click',()=>{
+      const cfg=out.textContent; const b64=btoa(encodeURIComponent(cfg));
+      const url = location.origin+location.pathname+'#'+b64;
+      document.getElementById('shareOut').value = url;
+    });
+
+    render();
+  </script>
+</body>
+</html>
